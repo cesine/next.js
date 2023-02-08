@@ -13,27 +13,40 @@ import type { PagesManifest } from '../build/webpack/plugins/pages-manifest-plug
 import { PageNotFoundError, MissingStaticPage } from '../shared/lib/utils'
 import LRUCache from 'next/dist/compiled/lru-cache'
 
-let manifestNoLocalesCache = {}
+let manifestNoLocalesCache = new Map<string, string[]>()
 
-function buildManifestNoLocales(manifest, locales, localesKey) {
-  manifestNoLocalesCache[localesKey] = {}
+function buildManifestNoLocales(
+  manifest: PagesManifest,
+  locales: string[],
+  localesKey: string
+) {
+  manifestNoLocalesCache.set(localesKey) = {}
   for (const key of Object.keys(manifest)) {
-    manifestNoLocalesCache[localesKey][
-      (0, _normalizeLocalePath).normalizeLocalePath(key, locales).pathname
-    ] = manifest[key]
+    manifestNoLocalesCache.set(
+      normalizeLocalePath(key, locales).pathname,
+      manifest[key]
+    )
   }
 }
 
-function getFromManifestNoLocales(manifest, page, locales) {
-  const localesKey = (locales || []).join('-')
-  if (!manifestNoLocalesCache[localesKey]) {
+function getFromManifestNoLocales(
+  manifest: PagesManifest,
+  page: string,
+  locales: string[] = []
+) {
+  const localesKey = locales.join('-')
+  if (!manifestNoLocalesCache.get(localesKey)) {
     buildManifestNoLocales(manifest, locales, localesKey)
   }
 
-  return manifestNoLocalesCache[localesKey][page]
+  return manifestNoLocalesCache.get(localesKey)[page]
 }
 
-function checkManifest(manifest, page, locales) {
+function checkManifest(
+  manifest: PagesManifest,
+  page: string,
+  locales?: string[]
+) {
   let curPath = manifest[page]
   if (!manifest[curPath] && locales) {
     curPath = getFromManifestNoLocales(manifest, page, locales)
