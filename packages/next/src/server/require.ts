@@ -13,19 +13,17 @@ import type { PagesManifest } from '../build/webpack/plugins/pages-manifest-plug
 import { PageNotFoundError, MissingStaticPage } from '../shared/lib/utils'
 import LRUCache from 'next/dist/compiled/lru-cache'
 
-let manifestNoLocalesCache = new Map<string, string[]>()
+let manifestNoLocalesCache: { [page: string]: string } = {}
 
 function buildManifestNoLocales(
   manifest: PagesManifest,
   locales: string[],
   localesKey: string
 ) {
-  manifestNoLocalesCache.set(localesKey) = {}
+  manifestNoLocalesCache[localesKey] = {}
   for (const key of Object.keys(manifest)) {
-    manifestNoLocalesCache.set(
-      normalizeLocalePath(key, locales).pathname,
+    manifestNoLocalesCache[normalizeLocalePath(key, locales).pathname] =
       manifest[key]
-    )
   }
 }
 
@@ -35,11 +33,11 @@ function getFromManifestNoLocales(
   locales: string[] = []
 ) {
   const localesKey = locales.join('-')
-  if (!manifestNoLocalesCache.get(localesKey)) {
+  if (!manifestNoLocalesCache[localesKey]) {
     buildManifestNoLocales(manifest, locales, localesKey)
   }
 
-  return manifestNoLocalesCache.get(localesKey)[page]
+  return manifestNoLocalesCache[localesKey][page]
 }
 
 function checkManifest(
